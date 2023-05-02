@@ -1,0 +1,26 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  KUBECONFIG: kubeconfig.yaml
+
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t your-image-name .
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker tag your-image-name $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
+
+deploy:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - echo "$KUBECONFIG_CONTENTS" > kubeconfig.yaml
+    - kubectl config use-context your-kube-context
+    - kubectl set image deployment/your-deployment your-container=$CI_REGISTRY_IMAGE:latest -n your-namespace
+    - kubectl rollout status deployment/your-deployment -n your-namespace
