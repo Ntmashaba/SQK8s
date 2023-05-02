@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarqube
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarqube
+  template:
+    metadata:
+      labels:
+        app: sonarqube
+    spec:
+      containers:
+      - name: sonarqube
+        image: sonarqube:9.1-community
+        env:
+        - name: SONARQUBE_LICENSE
+          value: "your_license_key_here"
+        ports:
+        - containerPort: 9000
+          name: sonarqube
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarqube
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 9000
+    targetPort: 9000
+    protocol: TCP
+    name: sonarqube
+  selector:
+    app: sonarqube
